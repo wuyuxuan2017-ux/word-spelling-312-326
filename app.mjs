@@ -1,4 +1,4 @@
-import {DATASET,normalize,initialState,answer,activeMistakes,beginReview,nextWord,sanitizeState} from './core.mjs';
+import {DATASET,normalize,initialState,answer,activeMistakes,beginReview,nextWord,sanitizeState} from './core.mjs?v=20261012-normal-speed';
 const $=id=>document.getElementById(id);
 const STORAGE='cijian:'+DATASET;
 const words=await fetch('./words.json').then(r=>{if(!r.ok)throw Error('单词表加载失败');return r.json();}).catch(()=>{document.querySelector('main').innerHTML='<section class="complete-card"><h2>单词表暂时没有加载成功</h2><p>请刷新页面后重试。</p></section>';return [];});
@@ -36,7 +36,6 @@ function save(){
  try{localStorage.setItem(STORAGE,JSON.stringify(state));storageOK=true;$('save-status').textContent='进度已保存';$('storage-alert').classList.add('hidden');}
  catch{storageOK=false;$('save-status').textContent='未能保存';$('storage-alert').textContent='当前浏览器无法保存进度。请在设置中导出进度备份，避免关闭后丢失。';$('storage-alert').classList.remove('hidden');}
 }
-try{if(!localStorage.getItem(STORAGE+':clear-speech-v2')){state.settings.rate=.65;localStorage.setItem(STORAGE+':clear-speech-v2','1');save();}}catch{}
 function toast(text){$('toast').textContent=text;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3500);}
 function icon(name){const s=document.createElementNS('http://www.w3.org/2000/svg','svg');const u=document.createElementNS('http://www.w3.org/2000/svg','use');u.setAttribute('href','#'+name);s.append(u);return s;}
 function textNode(tag,text,className){const el=document.createElement(tag);el.textContent=text;if(className)el.className=className;return el;}
