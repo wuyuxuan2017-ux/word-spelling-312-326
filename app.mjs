@@ -26,7 +26,7 @@ function renderSpelling(word,result){
  spellingSlots._sync=sync;
 }
 let state=initialState(),storageOK=true,started=false,filter='active',voices=[],speakingId=0,autoTimer,toastTimer,routeWriting=false;
-let pronunciationAudio=null,audioTimeout;
+let pronunciationAudio=null,audioTimeout,readyAudio=null,playTimer;
 function accentName(accent=state.settings.accent){return accent==='en-GB'?'英式':'美式';}
 function updateAccentButtons(){for(const [id,accent] of [['accent-uk','en-GB'],['accent-us','en-US']])$(id).setAttribute('aria-pressed',String(state.settings.accent===accent));}
 function chooseAccent(accent){state.settings.accent=accent;save();updateAccentButtons();started=true;$('start-overlay').classList.add('hidden');speakWord(currentWord());if(!$('answer-input').disabled)focusSpelling();}
@@ -115,21 +115,25 @@ function renderNotebook(){
   const mark=textNode('button',m.mastered?'放回待复习':'已记住，收起','text-button');mark.onclick=()=>{state.mistakes[key].mastered=!m.mastered;save();updateSummary();renderNotebook();};controls.append(mark);row.append(details,controls);list.append(row);
  }
 }
-function stopSpeech(){clearTimeout(autoTimer);clearTimeout(audioTimeout);speakingId++;if(pronunciationAudio){pronunciationAudio.onplaying=null;pronunciationAudio.onended=null;pronunciationAudio.onerror=null;pronunciationAudio.pause();pronunciationAudio.removeAttribute('src');pronunciationAudio.load();pronunciationAudio=null;}if('speechSynthesis' in window)speechSynthesis.cancel();$('play').classList.remove('playing');}
+function stopSpeech(){clearTimeout(autoTimer);clearTimeout(audioTimeout);clearTimeout(playTimer);speakingId++;if(readyAudio){readyAudio.pause();readyAudio=null;}if(pronunciationAudio){pronunciationAudio.onplaying=null;pronunciationAudio.onended=null;pronunciationAudio.onerror=null;pronunciationAudio.pause();pronunciationAudio.removeAttribute('src');pronunciationAudio.load();pronunciationAudio=null;}if('speechSynthesis' in window)speechSynthesis.cancel();$('play').classList.remove('playing');}
 function speechText(word){return word.word.replace(/[®™]/g,'');}
 function speakWord(word){
  if(!word)return;stopSpeech();
  const token=speakingId,accent=state.settings.accent,label=accentName(accent),audio=new Audio();pronunciationAudio=audio;
+ // Open the audio output before the word starts, including Bluetooth devices that take time to wake.
+ const ready=new Audio('./audio-ready.wav'),readyAt=performance.now();readyAudio=ready;ready.play().catch(()=>{});
  audio.preload='auto';audio.defaultPlaybackRate=state.settings.rate;audio.preservesPitch=true;
  audio.src='https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(speechText(word))+'&type='+(accent==='en-GB'?'1':'2');
  audio.playbackRate=state.settings.rate;
- $('speech-status').textContent='正在加载'+label+'发音…';
+ $('speech-status').textContent='准备播放：提示音后听完整的'+label+'发音。';
  let fallbackStarted=false;
  const fallback=()=>{if(token!==speakingId||fallbackStarted)return;fallbackStarted=true;clearTimeout(audioTimeout);audio.onplaying=null;audio.onended=null;audio.onerror=null;audio.pause();audio.removeAttribute('src');audio.load();speakWithDevice(word,accent,token);};
- audio.onplaying=()=>{if(token!==speakingId)return;clearTimeout(audioTimeout);$('play').classList.add('playing');$('play-label').textContent='正在播放'+label+'发音';$('speech-status').textContent=label+'发音 · 点击另一种口音可以对比。';};
+ audio.onplaying=()=>{if(token!==speakingId)return;clearTimeout(audioTimeout);setTimeout(()=>ready.pause(),200);$('play').classList.add('playing');$('play-label').textContent='正在播放'+label+'发音';$('speech-status').textContent=label+'发音 · 点击另一种口音可以对比。';};
  audio.onended=()=>{if(token!==speakingId)return;$('play').classList.remove('playing');$('play-label').textContent='重播'+label+'发音';$('speech-status').textContent='点击英式或美式，可以对比两种发音。';};
- audio.onerror=fallback;audioTimeout=setTimeout(fallback,8000);
- audio.play().catch(error=>{if(token!==speakingId)return;if(error.name==='NotAllowedError'){clearTimeout(audioTimeout);$('play-label').textContent='点击播放'+label+'发音';$('speech-status').textContent='请点击发音按钮，允许浏览器开始播放。';}else fallback();});
+ audio.onerror=fallback;audioTimeout=setTimeout(fallback,12000);
+ let queued=false;
+ audio.oncanplaythrough=()=>{if(token!==speakingId||queued||fallbackStarted)return;queued=true;let outputReadyAt=readyAt;if(ready.ended){ready.currentTime=0;ready.play().catch(()=>{});outputReadyAt=performance.now();}playTimer=setTimeout(()=>{if(token!==speakingId)return;audio.currentTime=0;audio.play().catch(error=>{if(token!==speakingId)return;if(error.name==='NotAllowedError'){clearTimeout(audioTimeout);ready.pause();$('play-label').textContent='点击播放'+label+'发音';$('speech-status').textContent='请点击发音按钮，允许浏览器开始播放。';}else fallback();});},Math.max(0,1000-(performance.now()-outputReadyAt)));};
+ audio.load();
 }
 function speakWithDevice(word,accent,token){
  const label=accentName(accent);voices='speechSynthesis' in window?speechSynthesis.getVoices():[];

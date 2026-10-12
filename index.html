@@ -3,7 +3,7 @@
 <head>
  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
  <meta name="theme-color" content="#17645b"><meta name="description" content="3607个词条，每次一个单词。听英文发音，看中文释义，练习拼写，自动保存进度和错词。">
- <title>词间 · 听音拼写</title><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css?v=20261012-click-fix">
+ <title>词间 · 听音拼写</title><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css?v=20261012-audio-start">
 </head>
 <body>
  <svg class="sprite" xmlns="http://www.w3.org/2000/svg"><symbol id="sound" viewBox="0 0 24 24"><path d="M11 4 5 9H2v6h3l6 5V4Zm4 4a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol><symbol id="arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol><symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol><symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol><symbol id="book" viewBox="0 0 24 24"><path d="M12 5v15M3 4c4-1 7 0 9 2 2-2 5-3 9-2v15c-4-1-7 0-9 2-2-2-5-3-9-2V4Z"/></symbol><symbol id="download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol></svg>
@@ -33,5 +33,5 @@
  </main>
  <dialog id="settings"><div class="dialog-heading"><h2>按你的节奏</h2><button id="settings-close" class="icon-button" aria-label="关闭设置"><svg><use href="#close"/></svg></button></div><p class="dialog-subtitle">发音和进度，都在这里。</p><div class="setting-row"><label for="auto-speech">新单词自动朗读</label><input id="auto-speech" type="checkbox" role="switch"></div><div class="setting-row"><label for="speech-accent">发音口音</label><select id="speech-accent"><option value="en-GB">英式英语</option><option value="en-US">美式英语</option></select></div><div class="setting-row"><label for="speech-rate">朗读速度</label><select id="speech-rate"><option value="0.65">慢速</option><option value="0.85">适中</option><option value="1">正常</option></select></div><p class="setting-note">英式与美式分别使用有道词典对应的在线音频，需要联网。音频不可用时，只使用设备中相同口音的备用语音。</p><div class="backup-block"><h3>保存你的进步</h3><p>进度保存在当前设备的这个浏览器里。换设备或清理浏览器前，可导出备份，在新设备恢复。</p><div class="backup-actions"><button id="export-progress" class="secondary-button"><svg><use href="#download"/></svg> 导出进度</button><button id="import-progress" class="secondary-button">恢复备份</button><input id="backup-file" type="file" accept=".json,application/json" hidden></div><p id="backup-status" role="status" aria-live="polite"></p></div><div class="resume-review-block hidden" id="resume-review-block"><p>你还有一轮未完成的错词复习。</p><button id="resume-review" class="text-button">继续上次复习 →</button></div><div class="jump-block"><label for="jump-number">跳转到词条</label><div><input type="number" id="jump-number" min="1" max="3607" value="1"><button id="jump" class="secondary-button">前往</button></div><p class="setting-note">会记住新的位置，已答记录和记错本保留。</p></div></dialog>
  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
- <script type="module" src="app.mjs?v=20261012-click-fix"></script>
+ <script type="module" src="app.mjs?v=20261012-audio-start"></script>
 </body></html>
