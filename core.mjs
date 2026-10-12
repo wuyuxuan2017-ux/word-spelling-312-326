@@ -1,6 +1,6 @@
 export const DATASET='index-312-326-v1';
 export const normalize=s=>String(s).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[®™]/g,'').replace(/[‘’]/g,"'").replace(/[‐‑–—]/g,'-').trim().replace(/\s+/g,' ').toLowerCase();
-export function initialState(){return {version:1,dataset:DATASET,cursor:0,results:{},mistakes:{},session:null,view:'learn',draft:null,settings:{auto:true,rate:1,accent:'en-GB'},savedAt:null};}
+export function initialState(){return {version:1,dataset:DATASET,cursor:0,results:{},mistakes:{},session:null,view:'learn',draft:null,settings:{auto:true,rate:1,accent:'en-GB'},study:{skill:'all',tier:1,positions:{},drafts:{}},savedAt:null};}
 export function answer(state,word,text,review=false){
  if(!text.trim())return null;
  const correct=normalize(text)===normalize(word.word);
@@ -41,7 +41,10 @@ export function sanitizeState(raw,words){
   if(normalize(word.word)!==key)continue;
   state.mistakes[key]={wordId:m.wordId,lastAnswer:m.lastAnswer,lastAt:m.lastAt,wrongCount:m.wrongCount,mastered:m.mastered===true,reviewCorrect:Math.max(0,Number(m.reviewCorrect)||0)};
  }
- const opts=raw.settings||{};state.settings={auto:opts.auto!==false,rate:[.65,.85,1].includes(opts.rate)?opts.rate:1,accent:['en-GB','en-US'].includes(opts.accent)?opts.accent:'en-GB'};
+ const opts=raw.settings||{};state.settings={auto:opts.auto!==false,rate:1,accent:['en-GB','en-US'].includes(opts.accent)?opts.accent:'en-GB'};
+ const study=raw.study||{};state.study.skill=['all','reading','listening','writing'].includes(study.skill)?study.skill:'all';state.study.tier=[1,2,3].includes(study.tier)?study.tier:1;
+ for(const [key,value] of Object.entries(study.positions||{})){if(/^(all|reading|listening|writing):[123]$/.test(key)&&Number.isInteger(value)&&value>=0&&value<=words.length)state.study.positions[key]=value;}
+ for(const [key,d] of Object.entries(study.drafts||{})){if(/^(all|reading|listening|writing):[123]$/.test(key)&&d&&ids.has(d.id)&&typeof d.text==='string'&&d.text.length<=500)state.study.drafts[key]={id:d.id,text:d.text,review:false,result:validResult(d.result)?{...d.result}:null};}
  if(raw.session&&Array.isArray(raw.session.ids)&&raw.session.ids.length&&raw.session.ids.every(id=>ids.has(id))&&Number.isInteger(raw.session.index)&&raw.session.index>=0&&raw.session.index<raw.session.ids.length){
   const q=raw.session;state.session={ids:q.ids,index:q.index,correct:Math.max(0,Number(q.correct)||0),answered:Math.max(0,Number(q.answered)||0),finished:q.finished===true};
  }
